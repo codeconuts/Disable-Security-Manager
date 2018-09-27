@@ -1,6 +1,3 @@
-# Disable-Security-Manager
-A snippet code for disabling the Java Security Manager.
-
 # Introduction
 This snippet code allows you to disable the Java Security Manager, provided that you have full access to any reflection related operations. It is not as simple as obtaining the `security` static field within `java.lang.System` and set the value to `null`. More information will be given below. Also, this code is licensed under the Unlicense, which nearly gives you all permissions, except for modifying the original snippet code.
 
@@ -252,7 +249,7 @@ Finally, lets take at the declaration of the `fieldFilterMap`.
     }
 ```
 As you can see, the Javadoc also clearly states the functionality. By default, fields in `java.lang.System` named `security`, fields in `java.lang.Class` named `classLoader`, and fields in `jdk.internal.reflect.Reflection` named `fieldFilterMap` or `methodFilterMap`, are filtered. For methods, none are filtered by default.
-# Solution
+# One time bypass
 The solution is straightforward, to obtain fields without undergoing the filtration. Lets take a look at the code snippet.
 ## A Security Manager giving required permissions
 ```java
@@ -279,7 +276,6 @@ If you look within the `privateGetDeclaredFields(boolean)` method, it actually c
 		for (Field field : fields) 
 			if (field.getName().equals("security")) 
 				securityField = field;
-		fields = null;
 ```
 ## Set the value via reflection
 Now, lets do what we do. Since we now have obtained the target field, what remains is to simply set the value via reflection.
@@ -300,7 +296,6 @@ Since we cannot reference `jdk.internal.reflect.Reflection`, we need to use `Cla
 		for (Field field : fields) 
 			if (field.getName().equals("fieldFilterMap")) 
 				mapField = field;
-		fields = null;
 ```
 ## Get the Map via reflection
 We don't want to set the field to null, because it will cause error during filtration. Instead, get the `Map` and remove the entries.
@@ -448,4 +443,14 @@ Generics are erased at runtime, so we can simply cast to `Map<?, ?>` and clear i
         map.put(containingClass, names);
         return map;
     }
+```
+## Modify cache if any
+If the above method did not work, it is most likely because the class you are getting `Member`s on has cached the `Member`s. If you look back on the `privateGetDeclaredFields(boolean)`, it actually obtains fields from `java.lang.Class.ReflectionData.declaredFields` field. Otherwise, it will obtain fields from `getDeclaredFields0()`, filter it, and cache it to `ReflectionData.declaredFields.` What this means is that the array of `Field` returned, which does not contain the filtered `Field`s, may actually be the old version before the filter got modified. Therefore, try to set the cache to the newer version.
+```java
+	Method reflectionDataM = Class.class.getDeclaredMethod("reflectionData");
+	reflectionDataM.setAccessible(true);
+	Object reflectionData = reflectionDataM.invoke(System.class);
+	Field cacheField = reflectiondata.getClass().getDeclaredField("declaredFields");
+	cacheField.setAccessible(true);
+	cacheField.set(reflectionData, fields);
 ```
