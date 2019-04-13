@@ -1,5 +1,5 @@
 # Introduction
-This snippet code allows you to disable the Java Security Manager, provided that you have full access to any reflection related operations. It is not as simple as obtaining the `security` static field within `java.lang.System` and set the value to `null`. More information will be given below. Also, this code is licensed under the Unlicense, which nearly gives you all permissions, except for modifying the original snippet code.
+This snippet code allows you to disable the Java Security Manager, provided that you have full access to any reflection related operations, and do not have the permission to replace the currently installed Security Manager. It is not as simple as obtaining the `security` static field within `java.lang.System` and set the value to `null`. More information will be given below. Also, this code is licensed under the Unlicense, which nearly gives you all permissions, except for modifying the original snippet code.
 
 **NO ONE IS RESPONSIBLE FOR THE USAGE OF THIS PIECE OF CODE. USE IT AT YOUR OWN RISK.**
 
